@@ -1,0 +1,25 @@
+{
+  "name": "stocks",
+  "version": "0.0.1",
+  "description": "Tool to help me analyse stocks",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "custom-env": "^2.0.6",
+    "drizzle-orm": "^0.44.6",
+    "drizzle-zod": "^0.8.3",
+    "ts-node": "^10.9.2",
+    "vitest": "^3.2.4",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.0",
+    "cross-env": "^10.1.0",
+    "drizzle-kit": "^0.31.5"
+  }
+}
