@@ -44,5 +44,9 @@ try {
     throw e
 }
 
+export const isDev = () => env.APP_STAGE === 'dev';
+export const isTest = () => env.APP_STAGE === 'test';
+export const isProd = () => env.APP_STAGE === 'prod';
+
 export { env };
 export default env; 
