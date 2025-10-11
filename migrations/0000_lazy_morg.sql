@@ -1,0 +1,102 @@
+CREATE TABLE "balance_sheets" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"company_id" uuid NOT NULL,
+	"period_date" date NOT NULL,
+	"cash_and_equivalents" integer,
+	"accounts_receivable" integer,
+	"inventories" integer,
+	"other_current_assets" integer,
+	"total_current_assets" integer,
+	"investiments" integer,
+	"property_plant_equipment" integer,
+	"goodwill" integer,
+	"intangible_assets" integer,
+	"other_assets" integer,
+	"total_assets" integer,
+	"short_term_debt" integer,
+	"accounts_payable" integer,
+	"payroll" integer,
+	"income_taxes" integer,
+	"other_current_liabilities" integer,
+	"total_current_liabilities" integer,
+	"long_term_debt" integer,
+	"other_liabilities" integer,
+	"total_liabilities" integer,
+	"common_stock" integer,
+	"retained_capital" integer,
+	"accumulated_compreensive_income" integer,
+	"total_stakeholders_equity" integer,
+	"total_liabilities_and_stakeholders_equity" integer,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "cash_flow_statements" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"company_id" uuid NOT NULL,
+	"period_date" date NOT NULL,
+	"net_income" integer,
+	"depreciation_amortization" integer,
+	"deferred_income_tax" integer,
+	"pension_contribution" integer,
+	"accounts_receivable_change" integer,
+	"inventories_change" integer,
+	"other_current_assets_change" integer,
+	"other_assets_change" integer,
+	"accounts_payable_change" integer,
+	"other_liabilities_change" integer,
+	"net_cash_from_operations" integer,
+	"capital_expenditures" integer,
+	"acquisitions" integer,
+	"asset_sales" integer,
+	"other_investing_activities" integer,
+	"net_cash_from_investing" integer,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "companies" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"ticker" varchar(10) NOT NULL,
+	"exchange" varchar(50) NOT NULL,
+	"name" varchar(255),
+	"sector" varchar(100),
+	"category" varchar(50),
+	"price" numeric(10, 2),
+	"shares" integer,
+	"website" varchar(255),
+	"description" text,
+	"next_earnings" timestamp,
+	"last_full_fetch" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "companies_ticker_unique" UNIQUE("ticker")
+);
+--> statement-breakpoint
+CREATE TABLE "income_statements" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"company_id" uuid NOT NULL,
+	"period_date" date NOT NULL,
+	"net_sales" integer,
+	"cost_of_goods_sold" integer,
+	"gross_profit" integer,
+	"selling_general_administrative" integer,
+	"research_and_development" integer,
+	"other_expenses_income" integer,
+	"operating_income" integer,
+	"interest_expense" integer,
+	"other_income_expense" integer,
+	"pretax_income" integer,
+	"income_taxes" integer,
+	"net_income" integer,
+	"eps_basic" numeric(10, 2),
+	"eps_diluted" numeric(10, 2),
+	"weighted_avg_shares_outstanding" integer,
+	"weighted_avg_shares_outstanding_diluted" integer,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+ALTER TABLE "balance_sheets" ADD CONSTRAINT "balance_sheets_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "cash_flow_statements" ADD CONSTRAINT "cash_flow_statements_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "income_statements" ADD CONSTRAINT "income_statements_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;

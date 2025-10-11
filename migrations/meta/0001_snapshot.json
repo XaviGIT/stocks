@@ -1,0 +1,649 @@
+{
+  "id": "610a91a4-f31b-4fc7-bb9b-7c8ea9de7640",
+  "prevId": "8259946a-dfef-4c71-8db7-24407f9c1661",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.balance_sheets": {
+      "name": "balance_sheets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_date": {
+          "name": "period_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cash_and_equivalents": {
+          "name": "cash_and_equivalents",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accounts_receivable": {
+          "name": "accounts_receivable",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "inventories": {
+          "name": "inventories",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_current_assets": {
+          "name": "other_current_assets",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_current_assets": {
+          "name": "total_current_assets",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "investiments": {
+          "name": "investiments",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "property_plant_equipment": {
+          "name": "property_plant_equipment",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "goodwill": {
+          "name": "goodwill",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "intangible_assets": {
+          "name": "intangible_assets",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_assets": {
+          "name": "other_assets",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_assets": {
+          "name": "total_assets",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "short_term_debt": {
+          "name": "short_term_debt",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accounts_payable": {
+          "name": "accounts_payable",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payroll": {
+          "name": "payroll",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "income_taxes": {
+          "name": "income_taxes",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_current_liabilities": {
+          "name": "other_current_liabilities",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_current_liabilities": {
+          "name": "total_current_liabilities",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "long_term_debt": {
+          "name": "long_term_debt",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_liabilities": {
+          "name": "other_liabilities",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_liabilities": {
+          "name": "total_liabilities",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "common_stock": {
+          "name": "common_stock",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "retained_capital": {
+          "name": "retained_capital",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accumulated_compreensive_income": {
+          "name": "accumulated_compreensive_income",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_stakeholders_equity": {
+          "name": "total_stakeholders_equity",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_liabilities_and_stakeholders_equity": {
+          "name": "total_liabilities_and_stakeholders_equity",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "balance_sheets_company_id_companies_id_fk": {
+          "name": "balance_sheets_company_id_companies_id_fk",
+          "tableFrom": "balance_sheets",
+          "tableTo": "companies",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cash_flow_statements": {
+      "name": "cash_flow_statements",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_date": {
+          "name": "period_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "net_income": {
+          "name": "net_income",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "depreciation_amortization": {
+          "name": "depreciation_amortization",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deferred_income_tax": {
+          "name": "deferred_income_tax",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pension_contribution": {
+          "name": "pension_contribution",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accounts_receivable_change": {
+          "name": "accounts_receivable_change",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "inventories_change": {
+          "name": "inventories_change",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_current_assets_change": {
+          "name": "other_current_assets_change",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_assets_change": {
+          "name": "other_assets_change",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accounts_payable_change": {
+          "name": "accounts_payable_change",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_liabilities_change": {
+          "name": "other_liabilities_change",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "net_cash_from_operations": {
+          "name": "net_cash_from_operations",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "capital_expenditures": {
+          "name": "capital_expenditures",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "acquisitions": {
+          "name": "acquisitions",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "asset_sales": {
+          "name": "asset_sales",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_investing_activities": {
+          "name": "other_investing_activities",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "net_cash_from_investing": {
+          "name": "net_cash_from_investing",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "cash_flow_statements_company_id_companies_id_fk": {
+          "name": "cash_flow_statements_company_id_companies_id_fk",
+          "tableFrom": "cash_flow_statements",
+          "tableTo": "companies",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.companies": {
+      "name": "companies",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sector": {
+          "name": "sector",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category": {
+          "name": "category",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price": {
+          "name": "price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shares": {
+          "name": "shares",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "website": {
+          "name": "website",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "next_earnings": {
+          "name": "next_earnings",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_full_fetch": {
+          "name": "last_full_fetch",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "companies_ticker_unique": {
+          "name": "companies_ticker_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "ticker"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.income_statements": {
+      "name": "income_statements",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_date": {
+          "name": "period_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "net_sales": {
+          "name": "net_sales",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost_of_goods_sold": {
+          "name": "cost_of_goods_sold",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gross_profit": {
+          "name": "gross_profit",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "selling_general_administrative": {
+          "name": "selling_general_administrative",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "research_and_development": {
+          "name": "research_and_development",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_expenses_income": {
+          "name": "other_expenses_income",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "operating_income": {
+          "name": "operating_income",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "interest_expense": {
+          "name": "interest_expense",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_income_expense": {
+          "name": "other_income_expense",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pretax_income": {
+          "name": "pretax_income",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "income_taxes": {
+          "name": "income_taxes",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "net_income": {
+          "name": "net_income",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "eps_basic": {
+          "name": "eps_basic",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "eps_diluted": {
+          "name": "eps_diluted",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weighted_avg_shares_outstanding": {
+          "name": "weighted_avg_shares_outstanding",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weighted_avg_shares_outstanding_diluted": {
+          "name": "weighted_avg_shares_outstanding_diluted",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "income_statements_company_id_companies_id_fk": {
+          "name": "income_statements_company_id_companies_id_fk",
+          "tableFrom": "income_statements",
+          "tableTo": "companies",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
