@@ -311,3 +311,32 @@ export const isRecentIPO = (ipoDate: Date | null): boolean => {
     twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
     return ipoDate > twoYearsAgo;
 };
+
+export const detectIPODate = (
+    incomeStatements: any[],
+    balanceSheets: any[]
+): Date | null => {
+    // Sort by date ascending (oldest first)
+    const sortedIncome = [...incomeStatements].sort((a, b) => 
+        new Date(a.periodDate).getTime() - new Date(b.periodDate).getTime()
+    );
+    const sortedBalance = [...balanceSheets].sort((a, b) => 
+        new Date(a.periodDate).getTime() - new Date(b.periodDate).getTime()
+    );
+    
+    // Try to find the earliest financial statement date
+    // This is a rough approximation - IPO date might be slightly before first statement
+    const earliestIncome = sortedIncome[0]?.periodDate;
+    const earliestBalance = sortedBalance[0]?.periodDate;
+    
+    if (!earliestIncome && !earliestBalance) return null;
+    
+    if (!earliestIncome) return new Date(earliestBalance);
+    if (!earliestBalance) return new Date(earliestIncome);
+    
+    // Return the earlier of the two
+    const incomeDate = new Date(earliestIncome);
+    const balanceDate = new Date(earliestBalance);
+    
+    return incomeDate < balanceDate ? incomeDate : balanceDate;
+};

@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import db from "../db/connection.ts";
 import { companies, companyMetadata, balanceSheets, incomeStatements, cashFlowStatements, type Company } from "../db/schema.ts";
 import { generateQuickAnalysis } from "../services/quickAnalysis.service.ts";
+import { calculateMarketCapCategory, detectIPODate } from "../services/metrics.service.ts";
 
 const getAnalysisRequirements = async (company: Company) => {
     // Fetch metadata (may not exist yet)
@@ -53,9 +54,36 @@ export const getQuickAnalysis = async (req: Request, res: Response) => {
             cashFlows
         } = await getAnalysisRequirements(company);
 
+        // Create metadata if it doesn't exist
+        let finalMetadata = metadata;
+        if (!metadata) {
+            console.log(`Creating default metadata for ${ticker}`);
+            
+            // Calculate market cap category
+            const price = company.price ? parseFloat(company.price) : null;
+            const shares = company.shares;            
+            
+            const marketCapCategory = calculateMarketCapCategory(price, shares);
+            
+            // Detect if it's a recent IPO based on financial history
+            const ipoDate = detectIPODate(incomeStatements, balanceSheets);
+            
+            // Create the metadata record
+            const [newMetadata] = await db
+                .insert(companyMetadata)
+                .values({
+                    companyId: company.id,
+                    ipoDate: ipoDate ? ipoDate.toISOString().split('T')[0] : null, // Convert Date to 'YYYY-MM-DD' string,
+                    marketCapCategory                    
+                })
+                .returning();
+            
+            finalMetadata = newMetadata;
+        }
+
         const analysis = generateQuickAnalysis(
             company,
-            metadata,
+            finalMetadata,
             balanceSheets,
             incomeStatements,
             cashFlows
