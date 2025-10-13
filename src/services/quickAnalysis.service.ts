@@ -35,6 +35,7 @@ export interface QuickAnalysisResult {
         averageOperatingCF: number | null;
         cfGrowthRate: number | null;
         latestOperatingCF: number | null;
+        cashFlowHistory: Array<{ year: number; amount: number }>;
     };
     
     returns: {

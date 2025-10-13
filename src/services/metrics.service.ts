@@ -77,7 +77,8 @@ export const analyzeCashFlow = (cashFlows: CashFlowStatement[]) => {
             consistentCashFlow: false,
             averageOperatingCF: null,
             cfGrowthRate: null,
-            latestOperatingCF: null
+            latestOperatingCF: null,
+            cashFlowHistory: []
         };
     }
 
@@ -104,12 +105,21 @@ export const analyzeCashFlow = (cashFlows: CashFlowStatement[]) => {
         }
     }
 
+    // Build cash flow history array (oldest to newest for chart display)
+    const cashFlowHistory = [...sortedCF]
+        .reverse() // Oldest first for chronological order
+        .map(cf => ({
+            year: new Date(cf.periodDate).getFullYear(),
+            amount: cf.netCashFromOperations || 0
+        }));
+
     return {
         generatesOperatingCF: (latest.netCashFromOperations || 0) > 0,
         consistentCashFlow: positiveCF.length >= 3,
         averageOperatingCF: average,
         cfGrowthRate: cagr,
-        latestOperatingCF: latest.netCashFromOperations
+        latestOperatingCF: latest.netCashFromOperations,
+        cashFlowHistory
     };
 };
 
