@@ -1,9 +1,17 @@
 import type { Company, CompanyMetadata, BalanceSheet, IncomeStatement, CashFlowStatement } from "../db/entities.ts";
 import * as metrics from "./metrics.service.ts";
 
-export interface QuickAnalysisResult {
-    ticker: string;
-    name: string | null;
+export interface QuickAnalysisResult {    
+    companyInfo: {
+        ticker: string;
+        name: string | null;
+        price: string | null;
+        shares: number | null;
+        marketCap: number | null;
+        sector: string | null;
+        category: string | null;
+        exchange: string | null;
+    };
     
     metadata: {
         marketCapCategory: string | null;
@@ -80,6 +88,10 @@ export const generateQuickAnalysis = (
     cashFlows: CashFlowStatement[]
 ): QuickAnalysisResult => {
     
+    const price = company.price ? parseFloat(company.price) : null;
+    const numberOfShares = company.shares;
+    const marketCap = price && numberOfShares ? price * numberOfShares : null;
+
     // Sort all data by date (most recent first)
     const sortedBalanceSheets = [...balanceSheets].sort((a, b) => 
         new Date(b.periodDate).getTime() - new Date(a.periodDate).getTime()
@@ -94,9 +106,8 @@ export const generateQuickAnalysis = (
     // Get latest balance sheet
     const latestBalanceSheet = sortedBalanceSheets[0] || null;
 
-    // Calculate market cap category
-    const price = company.price ? parseFloat(company.price) : null;
-    const marketCapCategory = metrics.calculateMarketCapCategory(price, company.shares);
+    // Calculate market cap category    
+    const marketCapCategory = metrics.calculateMarketCapCategory(price, numberOfShares);
 
     // Profitability analysis
     const profitability = metrics.analyzeProfitability(sortedIncomeStatements);
@@ -143,8 +154,16 @@ export const generateQuickAnalysis = (
     const isRecentIPO = metrics.isRecentIPO(ipoDate);
 
     return {
-        ticker: company.ticker,
-        name: company.name,
+        companyInfo: {
+            ticker: company.ticker,
+            name: company.name,
+            price: company.price,
+            shares: company.shares,
+            marketCap,
+            sector: company.sector,
+            category: company.category,
+            exchange: company.exchange,
+        },
         
         metadata: {
             marketCapCategory: metadata?.marketCapCategory || marketCapCategory,

@@ -68,9 +68,9 @@ export const getTickerFullData = async (ticker: string) => {
 
     return {
         company: companyData,
-        balanceSheets: balanceSheets.map(buildBalanceSheetData),
-        incomeStatements: incomeStatements.map(buildIncomeStatementData),
-        cashFlows: cashFlows.map(buildCashFlowStatementData)
+        balanceSheets: balanceSheets.filter(filterBalanceSheet).map(buildBalanceSheetData),
+        incomeStatements: incomeStatements.filter(filterIncomeStatement).map(buildIncomeStatementData),
+        cashFlows: cashFlows.filter(filterCashFlow).map(buildCashFlowStatementData)
     };
 }
 
@@ -97,7 +97,19 @@ const buildCompanyData = (ticker, quote, summaryData, nextEarnings) => {
   };
 }
 
-// TODO: check missing properties (goodwill, intangible assets, payroll)
+// filter out empty returns from yahoo
+const filterBalanceSheet = (original) => {
+    return original.cashAndCashEquivalents !== undefined;
+}
+
+const filterIncomeStatement = (original) => {    
+    return original.grossProfit !== undefined;
+}
+
+const filterCashFlow = (original) => {
+    return original.netIncomeFromContinuingOperations !== undefined;
+}
+
 const buildBalanceSheetData = (original): Omit<NewBalanceSheet, "companyId"> => {
     return {
         periodDate: original.date ?? null,
@@ -168,7 +180,7 @@ export const buildCashFlowStatementData = (original) => {
   return {
     periodDate: original.date,    
     // Operating Activities
-    net_income: original.netIncomeFromContinuingOperations ?? null,
+    netIncome: original.netIncomeFromContinuingOperations ?? null,
     depreciationamortization: original.depreciationAndAmortization ?? original.depreciationAmortizationDepletion ?? null,
     deferredIncomeTax: original.deferredTax ?? original.deferredIncomeTax ?? null,
     pensionContribution: null, // Not available in Yahoo Finance original    
