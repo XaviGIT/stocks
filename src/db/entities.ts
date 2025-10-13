@@ -32,7 +32,7 @@ export const balanceSheets = pgTable('balance_sheets', {
     otherCurrentAssets: bigint('other_current_assets', { mode: 'number'}),
     totalCurrentAssets: bigint('total_current_assets', { mode: 'number'}),
 
-    investiments: bigint('investiments', { mode: 'number'}),
+    investments: bigint('investiments', { mode: 'number'}),
     propertyPlantEquipment: bigint('property_plant_equipment', { mode: 'number'}),
     goodwill: bigint('goodwill', { mode: 'number'}),
     intangibleAssets: bigint('intangible_assets', { mode: 'number'}),
