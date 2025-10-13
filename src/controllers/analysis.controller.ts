@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { eq } from "drizzle-orm";
 import db from "../db/connection.ts";
-import { companies, companyMetadata, balanceSheets, incomeStatements, cashFlowStatements, Company } from "../db/schema.ts";
+import { companies, companyMetadata, balanceSheets, incomeStatements, cashFlowStatements, type Company } from "../db/schema.ts";
 import { generateQuickAnalysis } from "../services/quickAnalysis.service.ts";
 
 const getAnalysisRequirements = async (company: Company) => {
