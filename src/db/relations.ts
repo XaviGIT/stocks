@@ -1,10 +1,21 @@
-import { companies, balanceSheets, incomeStatements, cashFlowStatements } from './entities.ts'
+import { companies, balanceSheets, incomeStatements, cashFlowStatements, companyMetadata } from './entities.ts'
 import { relations } from "drizzle-orm";
 
-export const companyRelations = relations(companies, ({ many }) => ({
+export const companyRelations = relations(companies, ({ one, many }) => ({
+    metadata: one(companyMetadata, {
+        fields: [companies.id],
+        references: [companyMetadata.companyId]
+    }),
     balanceSheets: many(balanceSheets),
     incomeStatements: many(incomeStatements),
     cashFlowStatements: many(cashFlowStatements)
+}));
+
+export const companyMetadataRelations = relations(companyMetadata, ({ one }) => ({
+    company: one(companies, {
+        fields: [companyMetadata.companyId],
+        references: [companies.id]
+    })
 }));
 
 export const balanceSheetRelations = relations(balanceSheets, ({ one }) => ({

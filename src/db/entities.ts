@@ -1,5 +1,4 @@
-import { bigint, date, decimal, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { bigint, boolean, date, decimal, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const companies = pgTable('companies', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -16,6 +15,23 @@ export const companies = pgTable('companies', {
 
     nextEarnings: timestamp('next_earnings'),
     lastFullFetch: timestamp('last_full_fetch'),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const companyMetadata = pgTable('company_metadata', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+
+    ipoDate: date('ipo_date'),
+    isSpinoff: boolean('is_spinoff').default(false),
+    spinoffDate: date('spinoff_date'),
+    parentCompany: varchar('parent_company', {length: 255}),
+    marketCapCategory: varchar('market_cap_category', { length: 20}), // 'mega', 'large', 'mid', 'small', 'micro', 'nano'
+    peterLynchCategory: varchar('peter_lynch_category', { length: 50}), // 'stalwart', 'fast-grower', 'slow-grower', 'cyclical', 'turnaround', 'asset-play'
+    isBusinessStable: boolean('is_business_stable').default(false),
+    canUnderstandDebt: boolean('can_understand_debt').default(false),
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -118,17 +134,17 @@ export const cashFlowStatements = pgTable('cash_flow_statements', {
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const insertCompanySchema = createInsertSchema(companies);
-export const selectCompanySchema = createSelectSchema(companies);
-
 export type Company = typeof companies.$inferSelect;
 export type NewCompany = typeof companies.$inferInsert;
+
+export type CompanyMetadata = typeof companyMetadata.$inferSelect;
+export type NewCompanyMetadata = typeof companyMetadata.$inferInsert;
 
 export type BalanceSheet = typeof balanceSheets.$inferSelect;
 export type NewBalanceSheet = typeof balanceSheets.$inferInsert;
 
-export type incomeStatement = typeof incomeStatements.$inferSelect;
+export type IncomeStatement = typeof incomeStatements.$inferSelect;
 export type NewincomeStatement = typeof incomeStatements.$inferInsert;
 
-export type cashFlowStatement = typeof cashFlowStatements.$inferSelect;
+export type CashFlowStatement = typeof cashFlowStatements.$inferSelect;
 export type NewcashFlowStatement = typeof cashFlowStatements.$inferInsert;
