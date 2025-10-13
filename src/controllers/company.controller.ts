@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import db from "../db/connection.ts";
 import { balanceSheets, cashFlowStatements, companies, incomeStatements } from "../db/schema.ts";
 import { desc, eq, ilike, or } from "drizzle-orm";
-import { getTickerFullData, getTickerPrice, searchTerm } from "./yahoo.controller.ts";
+import { getTickerFullData, getTickerPrice, searchTerm } from "../services/yahoo.service.ts";
 
 export const searchCompany = async (req: Request, res: Response) => {
     try {
