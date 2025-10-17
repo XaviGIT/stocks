@@ -1,12 +1,15 @@
 import { Router } from 'express'
 import z from 'zod'
 
-import { getCompany, searchCompany } from '../controllers/company.controller.ts'
+import {
+  getCompany,
+  getCompanyFinancials,
+  searchCompany,
+} from '../controllers/company.controller.ts'
 import {
   validateParams,
   validateQueryParams,
 } from '../middleware/validation.ts'
-import { getCompanyFinancials } from '../controllers/valuation.controller.ts'
 
 const router = Router()
 
