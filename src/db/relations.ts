@@ -1,4 +1,11 @@
-import { companies, balanceSheets, incomeStatements, cashFlowStatements, companyMetadata } from './entities.ts'
+import {
+     companies, 
+    balanceSheets, 
+    incomeStatements, 
+    cashFlowStatements, 
+    companyMetadata, 
+    valuations
+} from './entities.ts'
 import { relations } from "drizzle-orm";
 
 export const companyRelations = relations(companies, ({ one, many }) => ({
@@ -8,7 +15,8 @@ export const companyRelations = relations(companies, ({ one, many }) => ({
     }),
     balanceSheets: many(balanceSheets),
     incomeStatements: many(incomeStatements),
-    cashFlowStatements: many(cashFlowStatements)
+    cashFlowStatements: many(cashFlowStatements),
+    valuations: many(valuations)
 }));
 
 export const companyMetadataRelations = relations(companyMetadata, ({ one }) => ({
@@ -35,6 +43,13 @@ export const incomeStatementRelations = relations(incomeStatements, ({ one }) =>
 export const cashFlowsStatementRelations = relations(cashFlowStatements, ({ one }) => ({
     company: one(companies, {
         fields: [cashFlowStatements.companyId],
+        references: [companies.id]
+    })
+}));
+
+export const valuationRelations = relations(valuations, ({ one }) => ({
+    company: one(companies, {
+        fields: [valuations.companyId],
         references: [companies.id]
     })
 }));

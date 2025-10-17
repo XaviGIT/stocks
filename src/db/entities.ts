@@ -134,6 +134,42 @@ export const cashFlowStatements = pgTable('cash_flow_statements', {
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const valuations = pgTable('valuations', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+    
+    scenarioName: varchar('scenario_name', { length: 100 }).notNull().default('Base Case'),
+    
+    // Model parameters
+    discountRate: decimal('discount_rate', { precision: 5, scale: 2 }).notNull(), // e.g., 10.00 for 10%
+    perpetualGrowthRate: decimal('perpetual_growth_rate', { precision: 5, scale: 2 }).notNull(), // e.g., 3.00 for 3%
+    sharesOutstanding: bigint('shares_outstanding', { mode: 'number' }).notNull(),
+    
+    // 10-year FCF projections (in millions or actual currency)
+    fcfYear1: bigint('fcf_year_1', { mode: 'number' }),
+    fcfYear2: bigint('fcf_year_2', { mode: 'number' }),
+    fcfYear3: bigint('fcf_year_3', { mode: 'number' }),
+    fcfYear4: bigint('fcf_year_4', { mode: 'number' }),
+    fcfYear5: bigint('fcf_year_5', { mode: 'number' }),
+    fcfYear6: bigint('fcf_year_6', { mode: 'number' }),
+    fcfYear7: bigint('fcf_year_7', { mode: 'number' }),
+    fcfYear8: bigint('fcf_year_8', { mode: 'number' }),
+    fcfYear9: bigint('fcf_year_9', { mode: 'number' }),
+    fcfYear10: bigint('fcf_year_10', { mode: 'number' }),
+    
+    // Calculated results (stored for historical comparison)
+    totalDiscountedFcf: bigint('total_discounted_fcf', { mode: 'number' }),
+    perpetuityValue: bigint('perpetuity_value', { mode: 'number' }),
+    discountedPerpetuityValue: bigint('discounted_perpetuity_value', { mode: 'number' }),
+    totalEquityValue: bigint('total_equity_value', { mode: 'number' }),
+    intrinsicValuePerShare: decimal('intrinsic_value_per_share', { precision: 10, scale: 2 }),
+        
+    notes: text('notes'),
+    
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export type Company = typeof companies.$inferSelect;
 export type NewCompany = typeof companies.$inferInsert;
 
@@ -148,3 +184,6 @@ export type NewincomeStatement = typeof incomeStatements.$inferInsert;
 
 export type CashFlowStatement = typeof cashFlowStatements.$inferSelect;
 export type NewcashFlowStatement = typeof cashFlowStatements.$inferInsert;
+
+export type Valuation = typeof valuations.$inferSelect;
+export type NewValuation = typeof valuations.$inferInsert;

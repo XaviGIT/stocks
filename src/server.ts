@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import { isTest } from '../env.ts';
 import companyRoutes from './routes/company.routes.ts';
 import analysisRoutes from './routes/analysis.routes.ts';
+import valuationRoutes from './routes/valuation.routes.ts';
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.get('/api/v1/health', (_, res) => {
 app.use('/api/v1/companies', companyRoutes);
 
 app.use('/api/v1/analysis', analysisRoutes);
+
+app.use('/api/v1/valuations', valuationRoutes);
 
 export { app };
 export default app;
