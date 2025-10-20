@@ -1,189 +1,274 @@
-import { bigint, boolean, date, decimal, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import {
+  bigint,
+  boolean,
+  date,
+  decimal,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core'
 
 export const companies = pgTable('companies', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    ticker: varchar('ticker', {length: 10}).notNull().unique(),
-    exchange: varchar('exchange', { length: 50 }).notNull(),
-    name: varchar('name', { length: 255 }),
-    sector: varchar('sector', { length: 100 }),
-    category: varchar('category', { length: 50 }),
-    price: decimal('price', { precision: 10, scale: 2 }),
-    shares: bigint('shares', { mode: 'number'}),
+  id: uuid('id').defaultRandom().primaryKey(),
+  ticker: varchar('ticker', { length: 10 }).notNull().unique(),
+  exchange: varchar('exchange', { length: 50 }).notNull(),
+  name: varchar('name', { length: 255 }),
+  sector: varchar('sector', { length: 100 }),
+  category: varchar('category', { length: 50 }),
+  price: decimal('price', { precision: 10, scale: 2 }),
+  shares: bigint('shares', { mode: 'number' }),
 
-    website: varchar('website', { length: 255}),
-    description: text('description'),
+  website: varchar('website', { length: 255 }),
+  description: text('description'),
 
-    nextEarnings: timestamp('next_earnings'),
-    lastFullFetch: timestamp('last_full_fetch'),
+  nextEarnings: timestamp('next_earnings'),
+  lastFullFetch: timestamp('last_full_fetch'),
 
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
 export const companyMetadata = pgTable('company_metadata', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  id: uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
 
-    ipoDate: date('ipo_date'),
-    isSpinoff: boolean('is_spinoff').default(false),
-    spinoffDate: date('spinoff_date'),
-    parentCompany: varchar('parent_company', {length: 255}),
-    marketCapCategory: varchar('market_cap_category', { length: 20}), // 'mega', 'large', 'mid', 'small', 'micro', 'nano'
-    peterLynchCategory: varchar('peter_lynch_category', { length: 50}), // 'stalwart', 'fast-grower', 'slow-grower', 'cyclical', 'turnaround', 'asset-play'
-    isBusinessStable: boolean('is_business_stable').default(false),
-    canUnderstandDebt: boolean('can_understand_debt').default(false),
+  ipoDate: date('ipo_date'),
+  isSpinoff: boolean('is_spinoff').default(false),
+  spinoffDate: date('spinoff_date'),
+  parentCompany: varchar('parent_company', { length: 255 }),
+  marketCapCategory: varchar('market_cap_category', { length: 20 }), // 'mega', 'large', 'mid', 'small', 'micro', 'nano'
+  peterLynchCategory: varchar('peter_lynch_category', { length: 50 }), // 'stalwart', 'fast-grower', 'slow-grower', 'cyclical', 'turnaround', 'asset-play'
+  isBusinessStable: boolean('is_business_stable').default(false),
+  canUnderstandDebt: boolean('can_understand_debt').default(false),
 
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
 export const balanceSheets = pgTable('balance_sheets', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),    
-    periodDate: date('period_date').notNull(),
-    
-    cashAndEquivalents: bigint('cash_and_equivalents', { mode: 'number'}),
-    accountsReceivable: bigint('accounts_receivable', { mode: 'number'}),
-    inventories: bigint('inventories', { mode: 'number'}),
-    otherCurrentAssets: bigint('other_current_assets', { mode: 'number'}),
-    totalCurrentAssets: bigint('total_current_assets', { mode: 'number'}),
+  id: uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  periodDate: date('period_date').notNull(),
 
-    investments: bigint('investiments', { mode: 'number'}),
-    propertyPlantEquipment: bigint('property_plant_equipment', { mode: 'number'}),
-    goodwill: bigint('goodwill', { mode: 'number'}),
-    intangibleAssets: bigint('intangible_assets', { mode: 'number'}),
-    otherAssets: bigint('other_assets', { mode: 'number'}),
-    totalAssets: bigint('total_assets', { mode: 'number'}),
+  cashAndEquivalents: bigint('cash_and_equivalents', { mode: 'number' }),
+  accountsReceivable: bigint('accounts_receivable', { mode: 'number' }),
+  inventories: bigint('inventories', { mode: 'number' }),
+  otherCurrentAssets: bigint('other_current_assets', { mode: 'number' }),
+  totalCurrentAssets: bigint('total_current_assets', { mode: 'number' }),
 
-    shortTermDebt: bigint('short_term_debt', { mode: 'number'}),
-    accountsPayable: bigint('accounts_payable', { mode: 'number'}),
-    payroll: bigint('payroll', { mode: 'number'}),
-    incomeTaxes: bigint('income_taxes', { mode: 'number'}),
-    otherCurrentLiabilities: bigint('other_current_liabilities', { mode: 'number'}),
-    totalCurrentLiabilities: bigint('total_current_liabilities', { mode: 'number'}),
-    longTermDebt: bigint('long_term_debt', { mode: 'number'}),
-    otherLiabilities: bigint('other_liabilities', { mode: 'number'}),
-    totalLiabilities: bigint('total_liabilities', { mode: 'number'}),
+  investments: bigint('investiments', { mode: 'number' }),
+  propertyPlantEquipment: bigint('property_plant_equipment', {
+    mode: 'number',
+  }),
+  goodwill: bigint('goodwill', { mode: 'number' }),
+  intangibleAssets: bigint('intangible_assets', { mode: 'number' }),
+  otherAssets: bigint('other_assets', { mode: 'number' }),
+  totalAssets: bigint('total_assets', { mode: 'number' }),
 
-    commonStock: bigint('common_stock', { mode: 'number'}),
-    retainedCapital: bigint('retained_capital', { mode: 'number'}),
-    accumulatedCompreensiveIncome: bigint('accumulated_compreensive_income', { mode: 'number'}),
-    totalStakeholdersEquity: bigint('total_stakeholders_equity', { mode: 'number'}),
-    totalLiabilitiesAndStakeholdersEquity: bigint('total_liabilities_and_stakeholders_equity', { mode: 'number'}),
+  shortTermDebt: bigint('short_term_debt', { mode: 'number' }),
+  accountsPayable: bigint('accounts_payable', { mode: 'number' }),
+  payroll: bigint('payroll', { mode: 'number' }),
+  incomeTaxes: bigint('income_taxes', { mode: 'number' }),
+  otherCurrentLiabilities: bigint('other_current_liabilities', {
+    mode: 'number',
+  }),
+  totalCurrentLiabilities: bigint('total_current_liabilities', {
+    mode: 'number',
+  }),
+  longTermDebt: bigint('long_term_debt', { mode: 'number' }),
+  otherLiabilities: bigint('other_liabilities', { mode: 'number' }),
+  totalLiabilities: bigint('total_liabilities', { mode: 'number' }),
 
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+  commonStock: bigint('common_stock', { mode: 'number' }),
+  retainedCapital: bigint('retained_capital', { mode: 'number' }),
+  accumulatedCompreensiveIncome: bigint('accumulated_compreensive_income', {
+    mode: 'number',
+  }),
+  totalStakeholdersEquity: bigint('total_stakeholders_equity', {
+    mode: 'number',
+  }),
+  totalLiabilitiesAndStakeholdersEquity: bigint(
+    'total_liabilities_and_stakeholders_equity',
+    { mode: 'number' }
+  ),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
 export const incomeStatements = pgTable('income_statements', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),    
-    periodDate: date('period_date').notNull(),
+  id: uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  periodDate: date('period_date').notNull(),
 
-    netSales: bigint('net_sales', { mode: 'number'}),
-    costOfGoodsSold: bigint('cost_of_goods_sold', { mode: 'number'}),
-    grossProfit: bigint('gross_profit', { mode: 'number'}),
+  netSales: bigint('net_sales', { mode: 'number' }),
+  costOfGoodsSold: bigint('cost_of_goods_sold', { mode: 'number' }),
+  grossProfit: bigint('gross_profit', { mode: 'number' }),
 
-    sellingGeneralAdministrative: bigint('selling_general_administrative', { mode: 'number'}),
-    researchAndDevelopment: bigint('research_and_development', { mode: 'number'}),
-    otherExpensesIncome: bigint('other_expenses_income', { mode: 'number'}), 
-    operatingIncome: bigint('operating_income', { mode: 'number'}),
+  sellingGeneralAdministrative: bigint('selling_general_administrative', {
+    mode: 'number',
+  }),
+  researchAndDevelopment: bigint('research_and_development', {
+    mode: 'number',
+  }),
+  otherExpensesIncome: bigint('other_expenses_income', { mode: 'number' }),
+  operatingIncome: bigint('operating_income', { mode: 'number' }),
 
-    interestExpense: bigint('interest_expense', { mode: 'number'}),
-    otherIncomeExpense: bigint('other_income_expense', { mode: 'number'}),
-    pretaxIncome: bigint('pretax_income', { mode: 'number'}),
+  interestExpense: bigint('interest_expense', { mode: 'number' }),
+  otherIncomeExpense: bigint('other_income_expense', { mode: 'number' }),
+  pretaxIncome: bigint('pretax_income', { mode: 'number' }),
 
-    incomeTaxes: bigint('income_taxes', { mode: 'number'}),
-    netIncome: bigint('net_income', { mode: 'number'}),
+  incomeTaxes: bigint('income_taxes', { mode: 'number' }),
+  netIncome: bigint('net_income', { mode: 'number' }),
 
-    epsBasic: decimal('eps_basic', { precision: 10, scale: 2 }),
-    epsDiluted: decimal('eps_diluted', { precision: 10, scale: 2 }),
+  epsBasic: decimal('eps_basic', { precision: 10, scale: 2 }),
+  epsDiluted: decimal('eps_diluted', { precision: 10, scale: 2 }),
 
-    weightedAvgSharesOutstanding: bigint('weighted_avg_shares_outstanding', { mode: 'number'}),
-    weightedAvgSharesOutstandingDiluted: bigint('weighted_avg_shares_outstanding_diluted', { mode: 'number'}),
+  weightedAvgSharesOutstanding: bigint('weighted_avg_shares_outstanding', {
+    mode: 'number',
+  }),
+  weightedAvgSharesOutstandingDiluted: bigint(
+    'weighted_avg_shares_outstanding_diluted',
+    { mode: 'number' }
+  ),
 
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
 export const cashFlowStatements = pgTable('cash_flow_statements', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),    
-    periodDate: date('period_date').notNull(),
+  id: uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  periodDate: date('period_date').notNull(),
 
-    net_income: bigint('net_income', { mode: 'number'}),
-    depreciationamortization: bigint('depreciation_amortization', { mode: 'number'}),
-    deferredIncomeTax: bigint('deferred_income_tax', { mode: 'number'}),
-    pensionContribution: bigint('pension_contribution', { mode: 'number'}),
+  net_income: bigint('net_income', { mode: 'number' }),
+  depreciationamortization: bigint('depreciation_amortization', {
+    mode: 'number',
+  }),
+  deferredIncomeTax: bigint('deferred_income_tax', { mode: 'number' }),
+  pensionContribution: bigint('pension_contribution', { mode: 'number' }),
 
-    accountsReceivableChange: bigint('accounts_receivable_change', { mode: 'number'}),
-    inventoriesChange: bigint('inventories_change', { mode: 'number'}),
-    otherCurrentAssetsChange: bigint('other_current_assets_change', { mode: 'number'}),
-    otherAssetsChange: bigint('other_assets_change', { mode: 'number'}),
-    accountsPayableChange: bigint('accounts_payable_change', { mode: 'number'}),
-    otherLiabilitiesChange: bigint('other_liabilities_change', { mode: 'number'}),
-    netCashFromOperations: bigint('net_cash_from_operations', { mode: 'number'}),
+  accountsReceivableChange: bigint('accounts_receivable_change', {
+    mode: 'number',
+  }),
+  inventoriesChange: bigint('inventories_change', { mode: 'number' }),
+  otherCurrentAssetsChange: bigint('other_current_assets_change', {
+    mode: 'number',
+  }),
+  otherAssetsChange: bigint('other_assets_change', { mode: 'number' }),
+  accountsPayableChange: bigint('accounts_payable_change', { mode: 'number' }),
+  otherLiabilitiesChange: bigint('other_liabilities_change', {
+    mode: 'number',
+  }),
+  netCashFromOperations: bigint('net_cash_from_operations', { mode: 'number' }),
 
-    capitalExpenditures: bigint('capital_expenditures', { mode: 'number'}),
-    acquisitions: bigint('acquisitions', { mode: 'number'}),
-    assetSales: bigint('asset_sales', { mode: 'number'}),
-    otherInvestingActivities: bigint('other_investing_activities', { mode: 'number'}),
-    netCashFromInvesting: bigint('net_cash_from_investing', { mode: 'number'}),
+  capitalExpenditures: bigint('capital_expenditures', { mode: 'number' }),
+  acquisitions: bigint('acquisitions', { mode: 'number' }),
+  assetSales: bigint('asset_sales', { mode: 'number' }),
+  otherInvestingActivities: bigint('other_investing_activities', {
+    mode: 'number',
+  }),
+  netCashFromInvesting: bigint('net_cash_from_investing', { mode: 'number' }),
 
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
 export const valuations = pgTable('valuations', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
-    
-    scenarioName: varchar('scenario_name', { length: 100 }).notNull().default('Base Case'),
-    
-    // Model parameters
-    discountRate: decimal('discount_rate', { precision: 5, scale: 2 }).notNull(), // e.g., 10.00 for 10%
-    perpetualGrowthRate: decimal('perpetual_growth_rate', { precision: 5, scale: 2 }).notNull(), // e.g., 3.00 for 3%
-    sharesOutstanding: bigint('shares_outstanding', { mode: 'number' }).notNull(),
-    
-    // 10-year FCF projections (in millions or actual currency)
-    fcfYear1: bigint('fcf_year_1', { mode: 'number' }),
-    fcfYear2: bigint('fcf_year_2', { mode: 'number' }),
-    fcfYear3: bigint('fcf_year_3', { mode: 'number' }),
-    fcfYear4: bigint('fcf_year_4', { mode: 'number' }),
-    fcfYear5: bigint('fcf_year_5', { mode: 'number' }),
-    fcfYear6: bigint('fcf_year_6', { mode: 'number' }),
-    fcfYear7: bigint('fcf_year_7', { mode: 'number' }),
-    fcfYear8: bigint('fcf_year_8', { mode: 'number' }),
-    fcfYear9: bigint('fcf_year_9', { mode: 'number' }),
-    fcfYear10: bigint('fcf_year_10', { mode: 'number' }),
-    
-    // Calculated results (stored for historical comparison)
-    totalDiscountedFcf: bigint('total_discounted_fcf', { mode: 'number' }),
-    perpetuityValue: bigint('perpetuity_value', { mode: 'number' }),
-    discountedPerpetuityValue: bigint('discounted_perpetuity_value', { mode: 'number' }),
-    totalEquityValue: bigint('total_equity_value', { mode: 'number' }),
-    intrinsicValuePerShare: decimal('intrinsic_value_per_share', { precision: 10, scale: 2 }),
-        
-    notes: text('notes'),
-    
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+  id: uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
 
-export type Company = typeof companies.$inferSelect;
-export type NewCompany = typeof companies.$inferInsert;
+  scenarioName: varchar('scenario_name', { length: 100 })
+    .notNull()
+    .default('Base Case'),
 
-export type CompanyMetadata = typeof companyMetadata.$inferSelect;
-export type NewCompanyMetadata = typeof companyMetadata.$inferInsert;
+  // Model parameters
+  discountRate: decimal('discount_rate', { precision: 5, scale: 2 }).notNull(), // e.g., 10.00 for 10%
+  perpetualGrowthRate: decimal('perpetual_growth_rate', {
+    precision: 5,
+    scale: 2,
+  }).notNull(), // e.g., 3.00 for 3%
+  sharesOutstanding: bigint('shares_outstanding', { mode: 'number' }).notNull(),
 
-export type BalanceSheet = typeof balanceSheets.$inferSelect;
-export type NewBalanceSheet = typeof balanceSheets.$inferInsert;
+  // 10-year FCF projections (in millions or actual currency)
+  fcfYear1: bigint('fcf_year_1', { mode: 'number' }),
+  fcfYear2: bigint('fcf_year_2', { mode: 'number' }),
+  fcfYear3: bigint('fcf_year_3', { mode: 'number' }),
+  fcfYear4: bigint('fcf_year_4', { mode: 'number' }),
+  fcfYear5: bigint('fcf_year_5', { mode: 'number' }),
+  fcfYear6: bigint('fcf_year_6', { mode: 'number' }),
+  fcfYear7: bigint('fcf_year_7', { mode: 'number' }),
+  fcfYear8: bigint('fcf_year_8', { mode: 'number' }),
+  fcfYear9: bigint('fcf_year_9', { mode: 'number' }),
+  fcfYear10: bigint('fcf_year_10', { mode: 'number' }),
 
-export type IncomeStatement = typeof incomeStatements.$inferSelect;
-export type NewincomeStatement = typeof incomeStatements.$inferInsert;
+  // Calculated results (stored for historical comparison)
+  totalDiscountedFcf: bigint('total_discounted_fcf', { mode: 'number' }),
+  perpetuityValue: bigint('perpetuity_value', { mode: 'number' }),
+  discountedPerpetuityValue: bigint('discounted_perpetuity_value', {
+    mode: 'number',
+  }),
+  totalEquityValue: bigint('total_equity_value', { mode: 'number' }),
+  intrinsicValuePerShare: decimal('intrinsic_value_per_share', {
+    precision: 10,
+    scale: 2,
+  }),
 
-export type CashFlowStatement = typeof cashFlowStatements.$inferSelect;
-export type NewcashFlowStatement = typeof cashFlowStatements.$inferInsert;
+  notes: text('notes'),
 
-export type Valuation = typeof valuations.$inferSelect;
-export type NewValuation = typeof valuations.$inferInsert;
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const stockStories = pgTable('stock_stories', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  content: jsonb('content').notNull().default({}),
+  lastEdited: timestamp('last_edited').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const storyVersions = pgTable('story_versions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  storyId: uuid('story_id')
+    .notNull()
+    .references(() => stockStories.id, { onDelete: 'cascade' }),
+  content: jsonb('content').notNull(),
+  version: integer('version').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export type Company = typeof companies.$inferSelect
+export type NewCompany = typeof companies.$inferInsert
+
+export type CompanyMetadata = typeof companyMetadata.$inferSelect
+export type NewCompanyMetadata = typeof companyMetadata.$inferInsert
+
+export type BalanceSheet = typeof balanceSheets.$inferSelect
+export type NewBalanceSheet = typeof balanceSheets.$inferInsert
+
+export type IncomeStatement = typeof incomeStatements.$inferSelect
+export type NewincomeStatement = typeof incomeStatements.$inferInsert
+
+export type CashFlowStatement = typeof cashFlowStatements.$inferSelect
+export type NewcashFlowStatement = typeof cashFlowStatements.$inferInsert
+
+export type Valuation = typeof valuations.$inferSelect
+export type NewValuation = typeof valuations.$inferInsert
