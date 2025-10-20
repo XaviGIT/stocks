@@ -1,16 +1,15 @@
 import db from '../db/connection.ts'
 import {
   companies,
-  sectors,
+  industries,
   incomeStatements,
   balanceSheets,
-  cashFlowStatements,
 } from '../db/schema.ts'
 import { eq, and, sql, desc } from 'drizzle-orm'
 
-export interface SectorMetrics {
-  sectorId: string
-  sectorName: string
+export interface IndustryMetrics {
+  industryId: string
+  industryName: string
   totalCompanies: number
   avgMarketCap: number
   medianMarketCap: number
@@ -40,28 +39,28 @@ export interface CompanyRanking {
 }
 
 /**
- * Calculate aggregate metrics for a sector
+ * Calculate aggregate metrics for an industry
  */
-export async function calculateSectorMetrics(
-  sectorId: string
-): Promise<SectorMetrics | null> {
+export async function calculateIndustryMetrics(
+  industryId: string
+): Promise<IndustryMetrics | null> {
   try {
-    // Get sector info
-    const sector = await db.query.sectors.findFirst({
-      where: eq(sectors.id, sectorId),
+    // Get industry info
+    const industry = await db.query.industries.findFirst({
+      where: eq(industries.id, industryId),
     })
 
-    if (!sector) return null
+    if (!industry) return null
 
-    // Get all companies in this sector with their latest financial data
-    const companiesInSector = await db.query.companies.findMany({
-      where: eq(companies.sectorId, sectorId),
+    // Get all companies in this industry with their latest financial data
+    const companiesInIndustry = await db.query.companies.findMany({
+      where: eq(companies.industryId, industryId),
     })
 
-    if (companiesInSector.length === 0) {
+    if (companiesInIndustry.length === 0) {
       return {
-        sectorId: sector.id,
-        sectorName: sector.name,
+        industryId: industry.id,
+        industryName: industry.name,
         totalCompanies: 0,
         avgMarketCap: 0,
         medianMarketCap: 0,
@@ -73,7 +72,7 @@ export async function calculateSectorMetrics(
     }
 
     // Calculate market caps
-    const marketCaps = companiesInSector
+    const marketCaps = companiesInIndustry
       .map((c) => {
         const price = c.price ? parseFloat(c.price) : null
         const shares = c.shares
@@ -101,7 +100,7 @@ export async function calculateSectorMetrics(
     const profitMarginData: number[] = []
     const revenueGrowthData: number[] = []
 
-    for (const company of companiesInSector) {
+    for (const company of companiesInIndustry) {
       // Get latest income statement
       const [latestIS, previousIS] = await db
         .select()
@@ -152,9 +151,9 @@ export async function calculateSectorMetrics(
         : null
 
     return {
-      sectorId: sector.id,
-      sectorName: sector.name,
-      totalCompanies: companiesInSector.length,
+      industryId: industry.id,
+      industryName: industry.name,
+      totalCompanies: companiesInIndustry.length,
       avgMarketCap,
       medianMarketCap,
       totalMarketCap,
@@ -163,24 +162,24 @@ export async function calculateSectorMetrics(
       avgRevenueGrowth,
     }
   } catch (error) {
-    console.error('Error calculating sector metrics:', error)
+    console.error('Error calculating industry metrics:', error)
     return null
   }
 }
 
 /**
- * Get peer companies in the same sector
+ * Get peer companies in the same industry
  */
-export async function getPeerCompanies(
+export async function getPeerCompaniesByIndustry(
   companyId: string,
-  sectorId: string,
+  industryId: string,
   limit: number = 10
 ): Promise<PeerCompany[]> {
   try {
-    // Get all companies in the same sector except the target company
+    // Get all companies in the same industry except the target company
     const peers = await db.query.companies.findMany({
       where: and(
-        eq(companies.sectorId, sectorId),
+        eq(companies.industryId, industryId),
         sql`${companies.id} != ${companyId}`
       ),
     })
@@ -188,7 +187,8 @@ export async function getPeerCompanies(
     // Enrich with financial data
     const enrichedPeers: PeerCompany[] = []
 
-    for (const peer of peers.slice(0, limit)) {
+    for (const peer of peers.slice(0, limit * 2)) {
+      // Get more to filter later
       const price = peer.price ? parseFloat(peer.price) : null
       const shares = peer.shares
       const marketCap = price && shares ? price * shares : null
@@ -233,14 +233,14 @@ export async function getPeerCompanies(
       })
     }
 
-    // Sort by market cap descending
+    // Sort by market cap descending and limit
     enrichedPeers.sort((a, b) => {
       if (a.marketCap === null) return 1
       if (b.marketCap === null) return -1
       return b.marketCap - a.marketCap
     })
 
-    return enrichedPeers
+    return enrichedPeers.slice(0, limit)
   } catch (error) {
     console.error('Error getting peer companies:', error)
     return []
@@ -248,11 +248,11 @@ export async function getPeerCompanies(
 }
 
 /**
- * Calculate company's ranking within its sector for various metrics
+ * Calculate company's ranking within its industry for various metrics
  */
-export async function getCompanyRankingInSector(
+export async function getCompanyRankingInIndustry(
   companyId: string,
-  sectorId: string
+  industryId: string
 ): Promise<{
   marketCapRank: CompanyRanking
   revenueRank: CompanyRanking
@@ -268,12 +268,12 @@ export async function getCompanyRankingInSector(
       throw new Error('Target company not found')
     }
 
-    // Get all companies in sector
-    const allCompaniesInSector = await db.query.companies.findMany({
-      where: eq(companies.sectorId, sectorId),
+    // Get all companies in industry
+    const allCompaniesInIndustry = await db.query.companies.findMany({
+      where: eq(companies.industryId, industryId),
     })
 
-    const totalCompanies = allCompaniesInSector.length
+    const totalCompanies = allCompaniesInIndustry.length
 
     // Calculate target company metrics
     const targetPrice = targetCompany.price
@@ -302,19 +302,19 @@ export async function getCompanyRankingInSector(
 
     // Calculate rankings
     const marketCapRanking = await calculateRanking(
-      allCompaniesInSector,
+      allCompaniesInIndustry,
       targetMarketCap,
       'marketCap'
     )
 
     const revenueRanking = await calculateRanking(
-      allCompaniesInSector,
+      allCompaniesInIndustry,
       targetRevenue,
       'revenue'
     )
 
     const profitMarginRanking = await calculateRanking(
-      allCompaniesInSector,
+      allCompaniesInIndustry,
       targetProfitMargin,
       'profitMargin'
     )
@@ -399,59 +399,11 @@ async function calculateRanking(
 
   // Find rank
   const rank = values.findIndex((v) => v <= targetValue) + 1
-  const percentile = ((values.length - rank + 1) / values.length) * 100
+  const percentile =
+    values.length > 0 ? ((values.length - rank + 1) / values.length) * 100 : 0
 
   return {
     rank: rank || values.length,
     percentile: Math.round(percentile),
-  }
-}
-
-/**
- * Get all sectors with basic stats
- */
-export async function getAllSectorsWithStats(): Promise<
-  Array<{
-    id: string
-    name: string
-    description: string | null
-    companyCount: number
-    totalMarketCap: number
-  }>
-> {
-  try {
-    const allSectors = await db.query.sectors.findMany({
-      with: {
-        companies: true,
-      },
-    })
-
-    const sectorsWithStats = allSectors.map((sector) => {
-      const companyCount = sector.companies.length
-
-      // Calculate total market cap
-      const totalMarketCap = sector.companies.reduce((sum, company) => {
-        const price = company.price ? parseFloat(company.price) : null
-        const shares = company.shares
-        const marketCap = price && shares ? price * shares : 0
-        return sum + marketCap
-      }, 0)
-
-      return {
-        id: sector.id,
-        name: sector.name,
-        description: sector.description,
-        companyCount,
-        totalMarketCap,
-      }
-    })
-
-    // Sort by total market cap descending
-    sectorsWithStats.sort((a, b) => b.totalMarketCap - a.totalMarketCap)
-
-    return sectorsWithStats
-  } catch (error) {
-    console.error('Error getting all sectors:', error)
-    return []
   }
 }

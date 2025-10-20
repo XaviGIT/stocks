@@ -3,6 +3,7 @@ import {
   getSectorAnalysis,
   getPeerComparison,
   getAllSectors,
+  getIndustryDetails,
 } from '../controllers/sector.controller.ts'
 import { validateParams } from '../middleware/validation.ts'
 import z from 'zod'
@@ -13,10 +14,21 @@ const tickerSchema = z.object({
   ticker: z.string(),
 })
 
-// Get list of all sectors
+const industryNameSchema = z.object({
+  industryName: z.string(),
+})
+
+// Get list of all industries (keeping route as /list for consistency)
 router.get('/list', getAllSectors)
 
-// Get sector analysis for a specific company
+// Get details about a specific industry by name
+router.get(
+  '/industry/:industryName',
+  validateParams(industryNameSchema),
+  getIndustryDetails
+)
+
+// Get industry analysis for a specific company
 router.get('/:ticker', validateParams(tickerSchema), getSectorAnalysis)
 
 // Get detailed peer comparison

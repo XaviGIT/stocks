@@ -25,3 +25,6 @@ pnpm-lock.yaml
 
 # optional npm cache directory
 .npm/
+
+# cursor
+.cursor/
