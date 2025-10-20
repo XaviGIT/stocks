@@ -4,6 +4,7 @@ import z from 'zod'
 import {
   getCompany,
   getCompanyFinancials,
+  getFinancialStatements,
   searchCompany,
 } from '../controllers/company.controller.ts'
 import {
@@ -29,6 +30,12 @@ router.get(
   '/:ticker/financials',
   validateParams(getCompanySchema),
   getCompanyFinancials
+)
+
+router.get(
+  '/:ticker/financials/statements',
+  validateParams(getCompanySchema),
+  getFinancialStatements
 )
 
 export default router

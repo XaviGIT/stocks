@@ -145,6 +145,69 @@ export const getCompany = async (req: Request, res: Response) => {
   res.status(201).json({ message: 'Company was created successfully' })
 }
 
+export const getFinancialStatements = async (req: Request, res: Response) => {
+  try {
+    const ticker = req.params.ticker.toUpperCase()
+
+    // Get company first to ensure it exists
+    const [company] = await db
+      .select()
+      .from(companies)
+      .where(eq(companies.ticker, ticker))
+      .limit(1)
+
+    if (!company) {
+      return res.status(404).json({
+        error: 'Company not found',
+        message: `No company found with ticker ${ticker}`,
+      })
+    }
+
+    // Fetch all three statement types in parallel
+    const [balanceSheetsData, incomeStatementsData, cashFlowsData] =
+      await Promise.all([
+        db
+          .select()
+          .from(balanceSheets)
+          .where(eq(balanceSheets.companyId, company.id))
+          .orderBy(desc(balanceSheets.periodDate)),
+        db
+          .select()
+          .from(incomeStatements)
+          .where(eq(incomeStatements.companyId, company.id))
+          .orderBy(desc(incomeStatements.periodDate)),
+        db
+          .select()
+          .from(cashFlowStatements)
+          .where(eq(cashFlowStatements.companyId, company.id))
+          .orderBy(desc(cashFlowStatements.periodDate)),
+      ])
+
+    // Return formatted response
+    res.json({
+      ticker: company.ticker,
+      companyName: company.name,
+      balanceSheets: balanceSheetsData,
+      incomeStatements: incomeStatementsData,
+      cashFlows: cashFlowsData,
+      metadata: {
+        balanceSheetsCount: balanceSheetsData.length,
+        incomeStatementsCount: incomeStatementsData.length,
+        cashFlowsCount: cashFlowsData.length,
+        oldestPeriod:
+          balanceSheetsData[balanceSheetsData.length - 1]?.periodDate,
+        latestPeriod: balanceSheetsData[0]?.periodDate,
+      },
+    })
+  } catch (error) {
+    console.error('Error fetching financial statements:', error)
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch financial statements',
+    })
+  }
+}
+
 // helpers
 
 async function shouldFetchFullData(
