@@ -17,13 +17,18 @@ export const companies = pgTable('companies', {
   ticker: varchar('ticker', { length: 10 }).notNull().unique(),
   exchange: varchar('exchange', { length: 50 }).notNull(),
   name: varchar('name', { length: 255 }),
-  sector: varchar('sector', { length: 100 }),
   category: varchar('category', { length: 50 }),
   price: decimal('price', { precision: 10, scale: 2 }),
   shares: bigint('shares', { mode: 'number' }),
 
   website: varchar('website', { length: 255 }),
   description: text('description'),
+  sectorId: uuid('sector_id').references(() => sectors.id, {
+    onDelete: 'set null',
+  }),
+  industryId: uuid('industry_id').references(() => industries.id, {
+    onDelete: 'set null',
+  }),
 
   nextEarnings: timestamp('next_earnings'),
   lastFullFetch: timestamp('last_full_fetch'),
@@ -252,6 +257,85 @@ export const storyVersions = pgTable('story_versions', {
     .references(() => stockStories.id, { onDelete: 'cascade' }),
   content: jsonb('content').notNull(),
   version: integer('version').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export const sectors = pgTable('sectors', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull().unique(),
+  description: text('description'),
+
+  industry: varchar('industry', { length: 100 }), // e.g., "Software", "Biotechnology"
+
+  // Aggregate metrics (calculated periodically)
+  avgPeRatio: decimal('avg_pe_ratio', { precision: 10, scale: 2 }),
+  avgProfitMargin: decimal('avg_profit_margin', { precision: 5, scale: 2 }),
+  avgRevenueGrowth: decimal('avg_revenue_growth', { precision: 5, scale: 2 }),
+  marketCapTotal: bigint('market_cap_total', { mode: 'number' }),
+
+  // Metadata
+  totalCompanies: integer('total_companies').default(0),
+  lastCalculated: timestamp('last_calculated'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const sectorMetricsHistory = pgTable('sector_metrics_history', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  sectorId: uuid('sector_id')
+    .notNull()
+    .references(() => sectors.id, { onDelete: 'cascade' }),
+
+  periodDate: date('period_date').notNull(),
+
+  // Historical sector metrics
+  avgPeRatio: decimal('avg_pe_ratio', { precision: 10, scale: 2 }),
+  avgProfitMargin: decimal('avg_profit_margin', { precision: 5, scale: 2 }),
+  avgRevenueGrowth: decimal('avg_revenue_growth', { precision: 5, scale: 2 }),
+  medianMarketCap: bigint('median_market_cap', { mode: 'number' }),
+  totalMarketCap: bigint('total_market_cap', { mode: 'number' }),
+  companyCount: integer('company_count'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export const industries = pgTable('industries', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 150 }).notNull().unique(),
+  description: text('description'),
+  sectorId: uuid('sector_id').references(() => sectors.id, {
+    onDelete: 'set null',
+  }), // Link to broader sector
+
+  // Aggregate metrics
+  avgPeRatio: decimal('avg_pe_ratio', { precision: 10, scale: 2 }),
+  avgProfitMargin: decimal('avg_profit_margin', { precision: 5, scale: 2 }),
+  avgRevenueGrowth: decimal('avg_revenue_growth', { precision: 5, scale: 2 }),
+  marketCapTotal: bigint('market_cap_total', { mode: 'number' }),
+
+  totalCompanies: integer('total_companies').default(0),
+  lastCalculated: timestamp('last_calculated'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const industryMetricsHistory = pgTable('industry_metrics_history', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  industryId: uuid('industry_id')
+    .notNull()
+    .references(() => industries.id, { onDelete: 'cascade' }),
+
+  periodDate: date('period_date').notNull(),
+
+  avgPeRatio: decimal('avg_pe_ratio', { precision: 10, scale: 2 }),
+  avgProfitMargin: decimal('avg_profit_margin', { precision: 5, scale: 2 }),
+  avgRevenueGrowth: decimal('avg_revenue_growth', { precision: 5, scale: 2 }),
+  medianMarketCap: bigint('median_market_cap', { mode: 'number' }),
+  totalMarketCap: bigint('total_market_cap', { mode: 'number' }),
+  companyCount: integer('company_count'),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

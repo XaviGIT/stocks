@@ -8,6 +8,7 @@ import companyRoutes from './routes/company.routes.ts'
 import analysisRoutes from './routes/analysis.routes.ts'
 import valuationRoutes from './routes/valuation.routes.ts'
 import storyRoutes from './routes/story.routes.ts'
+import sectorRoutes from './routes/sector.routes.ts'
 
 const app = express()
 
@@ -28,6 +29,8 @@ app.use('/api/v1/analysis', analysisRoutes)
 app.use('/api/v1/valuations', valuationRoutes)
 
 app.use('/api/v1/stories', storyRoutes)
+
+app.use('/api/v1/sectors', sectorRoutes)
 
 export { app }
 export default app

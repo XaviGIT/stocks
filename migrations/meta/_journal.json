@@ -36,6 +36,27 @@
       "when": 1760956931488,
       "tag": "0004_married_gideon",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1760963151369,
+      "tag": "0005_bored_vengeance",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1760964533874,
+      "tag": "0006_clean_guardsmen",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1760965947061,
+      "tag": "0007_uneven_blazing_skull",
+      "breakpoints": true
     }
   ]
 }

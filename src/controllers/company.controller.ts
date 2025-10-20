@@ -6,6 +6,8 @@ import {
   cashFlowStatements,
   companies,
   incomeStatements,
+  industries,
+  sectors,
 } from '../db/schema.ts'
 import { desc, eq, ilike, or } from 'drizzle-orm'
 import {
@@ -53,17 +55,20 @@ export const getCompany = async (req: Request, res: Response) => {
     const ticker = req.params.ticker.toUpperCase()
 
     console.info('Getting company from db')
-    const existingCompany = await db
-      .select()
-      .from(companies)
-      .where(eq(companies.ticker, ticker))
-      .limit(1)
 
-    const companyExists = existingCompany.length > 0
-    const company = companyExists ? existingCompany[0] : null
+    // Use Drizzle relations to fetch company with sector info
+    const existingCompany = await db.query.companies.findFirst({
+      where: eq(companies.ticker, ticker),
+      with: {
+        sector: true, // This will fetch the related sector data
+      },
+    })
+
+    const companyExists = !!existingCompany
+    const company = existingCompany || null
 
     // Determine if we need a full fetch
-    const needsFullFetch = await shouldFetchFullData(ticker, company)
+    const needsFullFetch = await shouldFetchFullData(company)
 
     if (needsFullFetch) {
       console.log(`Full fetch required for ${ticker}`)
@@ -71,12 +76,16 @@ export const getCompany = async (req: Request, res: Response) => {
 
       if (companyExists) {
         await updateCompanyWithFullData(company.id, fullData)
-        const updatedCompany = await db
-          .select()
-          .from(companies)
-          .where(eq(companies.id, company.id))
-          .limit(1)
-        fullData.company = updatedCompany[0]
+
+        // Fetch updated company with sector relation
+        const updatedCompany = await db.query.companies.findFirst({
+          where: eq(companies.id, company.id),
+          with: {
+            sector: true,
+          },
+        })
+
+        fullData.company = updatedCompany
       } else {
         console.info(`Fetching ${ticker} full data`)
         const newCompany = await insertCompanyWithFullData(fullData)
@@ -98,18 +107,19 @@ export const getCompany = async (req: Request, res: Response) => {
         })
         .where(eq(companies.id, company!.id))
 
-      // Return existing data with updated price
+      // Fetch all related data including sector
       const [
         updatedCompany,
         balanceSheetsData,
         incomeStatementsData,
         cashFlowsData,
       ] = await Promise.all([
-        db
-          .select()
-          .from(companies)
-          .where(eq(companies.id, company!.id))
-          .limit(1),
+        db.query.companies.findFirst({
+          where: eq(companies.id, company!.id),
+          with: {
+            sector: true,
+          },
+        }),
         db
           .select()
           .from(balanceSheets)
@@ -128,7 +138,7 @@ export const getCompany = async (req: Request, res: Response) => {
       ])
 
       return res.json({
-        company: updatedCompany[0],
+        company: updatedCompany,
         balanceSheets: balanceSheetsData,
         incomeStatements: incomeStatementsData,
         cashFlows: cashFlowsData,
@@ -141,20 +151,77 @@ export const getCompany = async (req: Request, res: Response) => {
       details: err instanceof Error ? err.message : 'Unknown error',
     })
   }
+}
 
-  res.status(201).json({ message: 'Company was created successfully' })
+export const getCompanyFinancials = async (req: Request, res: Response) => {
+  try {
+    const ticker = req.params.ticker.toUpperCase()
+
+    // Use relations for cleaner query
+    const company = await db.query.companies.findFirst({
+      where: eq(companies.ticker, ticker),
+      with: {
+        sector: true,
+      },
+    })
+
+    if (!company) {
+      return res.status(404).json({
+        error: 'Company not found',
+        message: `No company found with ticker ${ticker}`,
+      })
+    }
+
+    // Get the latest cash flow statement
+    const [latestCashFlow] = await db
+      .select()
+      .from(cashFlowStatements)
+      .where(eq(cashFlowStatements.companyId, company.id))
+      .orderBy(desc(cashFlowStatements.periodDate))
+      .limit(1)
+
+    // Calculate FCF: Operating Cash Flow - Capital Expenditures
+    const operatingCF = latestCashFlow?.netCashFromOperations || 0
+    const capEx = latestCashFlow?.capitalExpenditures || 0
+
+    // CapEx is usually negative, so we need to subtract it (which adds the absolute value)
+    const capExAdjusted = capEx > 0 ? -capEx : capEx
+    const currentFCF = operatingCF + capExAdjusted
+
+    res.json({
+      ticker,
+      companyName: company.name,
+      shares: company.shares,
+      currentFCF,
+      latestPeriod: latestCashFlow?.periodDate || null,
+      sector: company.sector?.name || null, // Include sector name
+      debug: {
+        operatingCashFlow: operatingCF,
+        capitalExpenditures: capEx,
+        capExAdjusted,
+        calculation: `${operatingCF} + (${capExAdjusted}) = ${currentFCF}`,
+      },
+    })
+  } catch (error) {
+    console.error('Error fetching company financials:', error)
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch company financials',
+    })
+  }
 }
 
 export const getFinancialStatements = async (req: Request, res: Response) => {
   try {
     const ticker = req.params.ticker.toUpperCase()
 
-    // Get company first to ensure it exists
-    const [company] = await db
-      .select()
-      .from(companies)
-      .where(eq(companies.ticker, ticker))
-      .limit(1)
+    // Get company with sector info
+    const company = await db.query.companies.findFirst({
+      where: eq(companies.ticker, ticker),
+      with: {
+        sector: true,
+      },
+    })
 
     if (!company) {
       return res.status(404).json({
@@ -183,10 +250,11 @@ export const getFinancialStatements = async (req: Request, res: Response) => {
           .orderBy(desc(cashFlowStatements.periodDate)),
       ])
 
-    // Return formatted response
+    // Return formatted response with sector info
     res.json({
       ticker: company.ticker,
       companyName: company.name,
+      sector: company.sector?.name || null,
       balanceSheets: balanceSheetsData,
       incomeStatements: incomeStatementsData,
       cashFlows: cashFlowsData,
@@ -210,10 +278,7 @@ export const getFinancialStatements = async (req: Request, res: Response) => {
 
 // helpers
 
-async function shouldFetchFullData(
-  ticker: string,
-  company: typeof companies.$inferSelect | null
-): Promise<boolean> {
+async function shouldFetchFullData(company: any | null): Promise<boolean> {
   if (!company) return true
   if (!company.nextEarnings) return true
   if (!company.lastFullFetch) return true
@@ -234,11 +299,53 @@ async function shouldFetchFullData(
   return false
 }
 
+async function findOrCreateSector(
+  sectorName: string | null
+): Promise<string | null> {
+  if (!sectorName) return null
+
+  try {
+    // Check if sector exists
+    const existingSector = await db.query.sectors.findFirst({
+      where: eq(sectors.name, sectorName),
+    })
+
+    if (existingSector) {
+      return existingSector.id
+    }
+
+    // Create new sector
+    const [newSector] = await db
+      .insert(sectors)
+      .values({
+        name: sectorName,
+        description: null, // Can be populated later
+      })
+      .returning()
+
+    console.log(`Created new sector: ${sectorName}`)
+    return newSector.id
+  } catch (error) {
+    console.error(`Error finding/creating sector ${sectorName}:`, error)
+    return null
+  }
+}
+
 const insertCompanyWithFullData = async (data: any) => {
   return await db.transaction(async (tx) => {
+    const sectorId = await findOrCreateSector(data.company.sector)
+    const industryId = await findOrCreateIndustry(
+      data.company.category,
+      sectorId
+    )
+
     const [newCompany] = await tx
       .insert(companies)
-      .values(data.company)
+      .values({
+        ...data.company,
+        sectorId,
+        industryId,
+      })
       .returning()
 
     if (data.balanceSheets.length > 0) {
@@ -267,17 +374,36 @@ const insertCompanyWithFullData = async (data: any) => {
         )
     }
 
-    return newCompany
+    const completeCompany = await tx.query.companies.findFirst({
+      where: eq(companies.id, newCompany.id),
+      with: {
+        sector: true,
+      },
+    })
+
+    return completeCompany
   })
 }
 
 const updateCompanyWithFullData = async (companyId: string, data: any) => {
   return await db.transaction(async (tx) => {
+    const sectorId = await findOrCreateSector(data.company.sector)
+    const industryId = await findOrCreateIndustry(
+      data.company.category,
+      sectorId
+    )
+
     await tx
       .update(companies)
-      .set({ ...data.company, updatedAt: new Date() })
+      .set({
+        ...data.company,
+        sectorId,
+        industryId,
+        updatedAt: new Date(),
+      })
       .where(eq(companies.id, companyId))
 
+    // Delete existing financial statements
     await tx.delete(balanceSheets).where(eq(balanceSheets.companyId, companyId))
     await tx
       .delete(incomeStatements)
@@ -286,6 +412,7 @@ const updateCompanyWithFullData = async (companyId: string, data: any) => {
       .delete(cashFlowStatements)
       .where(eq(cashFlowStatements.companyId, companyId))
 
+    // Insert new financial statements
     if (data.balanceSheets.length > 0) {
       await tx
         .insert(balanceSheets)
@@ -306,61 +433,36 @@ const updateCompanyWithFullData = async (companyId: string, data: any) => {
   })
 }
 
-// Add this method to your companies controller
+async function findOrCreateIndustry(
+  industryName: string | null,
+  sectorId: string | null
+): Promise<string | null> {
+  if (!industryName) return null
 
-export const getCompanyFinancials = async (req: Request, res: Response) => {
   try {
-    const ticker = req.params.ticker.toUpperCase()
+    // Check if industry exists
+    const existingIndustry = await db.query.industries.findFirst({
+      where: eq(industries.name, industryName),
+    })
 
-    const [company] = await db
-      .select()
-      .from(companies)
-      .where(eq(companies.ticker, ticker))
-      .limit(1)
-
-    if (!company) {
-      return res.status(404).json({
-        error: 'Company not found',
-        message: `No company found with ticker ${ticker}`,
-      })
+    if (existingIndustry) {
+      return existingIndustry.id
     }
 
-    // Get the latest cash flow statement
-    const [latestCashFlow] = await db
-      .select()
-      .from(cashFlowStatements)
-      .where(eq(cashFlowStatements.companyId, company.id))
-      .orderBy(desc(cashFlowStatements.periodDate))
-      .limit(1)
+    // Create new industry
+    const [newIndustry] = await db
+      .insert(industries)
+      .values({
+        name: industryName,
+        sectorId, // Link to broader sector
+        description: null,
+      })
+      .returning()
 
-    // Calculate FCF: Operating Cash Flow - Capital Expenditures
-    const operatingCF = latestCashFlow?.netCashFromOperations || 0
-    const capEx = latestCashFlow?.capitalExpenditures || 0
-
-    // CapEx is usually negative, so we need to subtract it (which adds the absolute value)
-    // But if it's already positive in DB, we need to make it negative
-    const capExAdjusted = capEx > 0 ? -capEx : capEx
-    const currentFCF = operatingCF + capExAdjusted
-
-    res.json({
-      ticker,
-      companyName: company.name,
-      shares: company.shares,
-      currentFCF,
-      latestPeriod: latestCashFlow?.periodDate || null,
-      // Add debug info
-      debug: {
-        operatingCashFlow: operatingCF,
-        capitalExpenditures: capEx,
-        capExAdjusted,
-        calculation: `${operatingCF} + (${capExAdjusted}) = ${currentFCF}`,
-      },
-    })
+    console.log(`Created new industry: ${industryName}`)
+    return newIndustry.id
   } catch (error) {
-    console.error('Error fetching company financials:', error)
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to fetch company financials',
-    })
+    console.error(`Error finding/creating industry ${industryName}:`, error)
+    return null
   }
 }

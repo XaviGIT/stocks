@@ -7,6 +7,10 @@ import {
   valuations,
   stockStories,
   storyVersions,
+  sectors,
+  sectorMetricsHistory,
+  industries,
+  industryMetricsHistory,
 } from './entities.ts'
 import { relations } from 'drizzle-orm'
 
@@ -14,6 +18,14 @@ export const companyRelations = relations(companies, ({ one, many }) => ({
   metadata: one(companyMetadata, {
     fields: [companies.id],
     references: [companyMetadata.companyId],
+  }),
+  sector: one(sectors, {
+    fields: [companies.sectorId],
+    references: [sectors.id],
+  }),
+  industry: one(industries, {
+    fields: [companies.industryId],
+    references: [industries.id],
   }),
   balanceSheets: many(balanceSheets),
   incomeStatements: many(incomeStatements),
@@ -76,3 +88,37 @@ export const stockStoryRelations = relations(stockStories, ({ one, many }) => ({
   }),
   versions: many(storyVersions),
 }))
+
+export const sectorsRelations = relations(sectors, ({ many }) => ({
+  companies: many(companies),
+  metricsHistory: many(sectorMetricsHistory),
+}))
+
+export const sectorMetricsHistoryRelations = relations(
+  sectorMetricsHistory,
+  ({ one }) => ({
+    sector: one(sectors, {
+      fields: [sectorMetricsHistory.sectorId],
+      references: [sectors.id],
+    }),
+  })
+)
+
+export const industriesRelations = relations(industries, ({ one, many }) => ({
+  sector: one(sectors, {
+    fields: [industries.sectorId],
+    references: [sectors.id],
+  }),
+  companies: many(companies),
+  metricsHistory: many(industryMetricsHistory),
+}))
+
+export const industryMetricsHistoryRelations = relations(
+  industryMetricsHistory,
+  ({ one }) => ({
+    industry: one(industries, {
+      fields: [industryMetricsHistory.industryId],
+      references: [industries.id],
+    }),
+  })
+)
